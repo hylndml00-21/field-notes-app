@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Field Notes - Biology</title>
+<style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+  body { margin: 0; background: #FFE3DD; color: #4A2A30; padding: 20px; display: flex; justify-content: center; }
+  .app { width: 100%; max-width: 900px; }
+  header { text-align: center; margin-bottom: 20px; }
+  header h1 { margin: 0; color: #E84A7A; font-size: 32px; }
+  header p { color: #7A4A52; margin: 6px 0 0; }
+  .top { display: grid; grid-template-columns: 1fr 1.4fr; gap: 20px; align-items: start; }
+  @media (max-width: 700px){ .top{ grid-template-columns: 1fr; } }
+  .card { background: #FFF7F5; border-radius: 20px; padding: 20px; box-shadow: 0 8px 25px rgba(242,154,174,0.25); border: 2px solid #F9A8B8; }
+  .card h2 { margin: 0 0 14px; color: #C2185B; font-size: 18px; }
+  label { font-size: 12px; font-weight: bold; color: #7A4A52; text-transform: uppercase; letter-spacing: .5px; }
+  input, select, textarea { width: 100%; padding: 11px; margin: 5px 0 12px; border: 2px solid #FFD1D9; border-radius: 12px; background: white; color: #4A2A30; outline: none; }
+  input:focus, select:focus, textarea:focus { border-color: #F29AAE; background: white; }
+  textarea { min-height: 80px; resize: vertical; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .btn-main { width: 100%; padding: 13px; border: none; border-radius: 12px; background: #FF4D7A; color: white; font-weight: bold; font-size: 15px; cursor: pointer; }
+  .btn-main:hover { background: #E83A6A; }
+  .stats { display: flex; gap: 12px; margin-top: 16px; }
+  .stat { flex: 1; background: #FFD9E0; border-radius: 14px; padding: 12px; text-align: center; }
+  .stat b { display: block; font-size: 22px; color: #C2185B; }
+  .stat span { font-size: 12px; color: #7A4A52; }
+  .search-bar { display: flex; gap: 10px; margin: 20px 0 14px; }
+  .search-bar input { margin: 0; }
+  .search-bar select { margin: 0; max-width: 180px; }
+  .notes { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  @media (max-width: 700px){ .notes{ grid-template-columns: 1fr; } }
+  .note { background: #FFF7F5; border: 2px solid #F9A8B8; border-radius: 18px; padding: 16px; position: relative; }
+  .note h3 { margin: 0 0 4px; color: #4A2A30; font-size: 17px; }
+  .note .species { font-style: italic; color: #E84A7A; font-size: 13px; margin-bottom: 8px; }
+  .note p { font-size: 14px; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; color: #5A333A; }
+  .tag { display: inline-block; background: #FFD9E0; color: #C2185B; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; margin: 2px 2px 0 0; }
+  .meta { font-size: 12px; color: #9A6A70; margin-top: 10px; }
+  .del { position: absolute; top: 10px; right: 10px; background: #FFE3DD; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; color: #C2185B; }
+  .empty { text-align: center; padding: 30px; color: #7A4A52; background: #FFF7F5; border-radius: 18px; border: 2px dashed #F9A8B8; grid-column: 1 / -1; }
+  .clear-btn { background: none; border: none; color: #C2185B; text-decoration: underline; cursor: pointer; font-size: 13px; margin-top: 12px; }
+  /* Checklist */
+  .check-add { display: flex; gap: 8px; margin-bottom: 12px; }
+  .check-add input { margin: 0; }
+  .check-add button { padding: 11px 16px; border: none; border-radius: 12px; background: #FF4D7A; color: white; font-weight: bold; cursor: pointer; white-space: nowrap; }
+  .check-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; background: white; border: 1px solid #FFD1D9; border-radius: 12px; margin-bottom: 8px; }
+  .check-item input[type="checkbox"] { width: 20px; height: 20px; margin: 0; accent-color: #FF4D7A; cursor: pointer; flex-shrink: 0; }
+  .check-item span { flex: 1; font-size: 14px; }
+  .check-item span.done { text-decoration: line-through; color: #A07A80; }
+  .check-item .edit-btn, .check-item .x-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 4px; }
+  .check-item .x-btn { color: #E84A7A; }
+  .check-hint { font-size: 12px; color: #9A6A70; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>🌿 Field Notes</h1>
+    <p>Outdoor observations for Biology students • Save, search & review in the field</p>
+  </header>
+
+  <div class="top">
+    <div class="card">
+      <h2>+ New Observation</h2>
+      <label>Observation Title</label>
+      <input id="title" placeholder="e.g. Ant colony near mango tree">
+      <div class="row">
+        <div><label>Species / Organism</label><input id="species" placeholder="e.g. Solenopsis invicta"></div>
+        <div><label>Date</label><input id="date" type="date"></div>
+      </div>
+      <div class="row">
+        <div><label>Location</label><input id="location" placeholder="e.g. Campus Garden, Alicia"></div>
+        <div><label>Habitat</label>
+          <select id="habitat">
+            <option>Forest</option><option>Garden</option><option>Grassland</option><option>Wetland / Pond</option><option>River / Stream</option><option>Coastal</option><option>School Campus</option><option>Home / Backyard</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div><label>Weather</label>
+          <select id="weather"><option>☀️ Sunny</option><option>⛅ Cloudy</option><option>🌧️ Rainy</option><option>🌤️ Partly Cloudy</option><option>💨 Windy</option></select>
+        </div>
+        <div><label>Category</label>
+          <select id="category"><option>Plant</option><option>Animal</option><option>Insect</option><option>Fungi</option><option>Bird</option><option>Aquatic Life</option><option>Microorganism</option><option>Ecosystem</option></select>
+        </div>
+      </div>
+      <label>Observation Notes</label>
+      <textarea id="notes" placeholder="What did you see? Behavior, color, size, count, sounds, interactions..."></textarea>
+      <button class="btn-main" onclick="addNote()">Save Field Note</button>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Quick Guide</h2>
+        <p style="font-size:14px; line-height:1.6; margin:0;">Write what you <b>see</b>, not what you think. Note the <b>color, size, count, behavior</b> and <b>exact location</b>. Take a photo if you can and add the link in notes. Your notes are saved in this browser automatically.</p>
+        <div class="stats">
+          <div class="stat"><b id="totalCount">0</b><span>Total Notes</span></div>
+          <div class="stat"><b id="todayCount">0</b><span>Today</span></div>
+          <div class="stat"><b id="speciesCount">0</b><span>Species</span></div>
+        </div>
+        <button class="clear-btn" onclick="clearAll()">Clear all notes</button>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <h2>Field Checklist ✏️ Editable</h2>
+        <div class="check-add">
+          <input id="newCheck" placeholder="Add new item... e.g. Sunscreen" onkeydown="if(event.key==='Enter') addCheck()">
+          <button onclick="addCheck()">+ Add</button>
+        </div>
+        <div id="checklist"></div>
+        <div class="check-hint">Tip: Click ✏️ to edit, ✕ to delete, checkbox to check. Auto-saved!</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <input id="search" placeholder="Search notes, species, location..." oninput="render()">
+    <select id="filterCat" onchange="render()"><option value="">All Categories</option><option>Plant</option><option>Animal</option><option>Insect</option><option>Fungi</option><option>Bird</option><option>Aquatic Life</option><option>Microorganism</option><option>Ecosystem</option></select>
+  </div>
+
+  <div class="notes" id="notesList"></div>
+</div>
+
+<script>
+let notesData = JSON.parse(localStorage.getItem('fieldNotes') || '[]');
+let checklistData = JSON.parse(localStorage.getItem('fieldChecklist') || '[]');
+if(checklistData.length === 0){
+  checklistData = [
+    {id:1, text:'Notebook / Phone charged', done:false},
+    {id:2, text:'Magnifying glass', done:false},
+    {id:3, text:'Water & hat', done:false},
+    {id:4, text:'Camera ready', done:false},
+    {id:5, text:'Gloves / Specimen bag', done:false},
+  ];
+  localStorage.setItem('fieldChecklist', JSON.stringify(checklistData));
+}
+document.getElementById('date').valueAsDate = new Date();
+
+function addNote(){
+  let title = document.getElementById('title').value.trim();
+  let species = document.getElementById('species').value.trim();
+  let notes = document.getElementById('notes').value.trim();
+  if(!title){ alert('Please add a title for your observation!'); return; }
+  let note = { id: Date.now(), title, species, date: document.getElementById('date').value, location: document.getElementById('location').value, habitat: document.getElementById('habitat').value, weather: document.getElementById('weather').value, category: document.getElementById('category').value, notes: notes || 'No detailed notes.' };
+  notesData.unshift(note);
+  localStorage.setItem('fieldNotes', JSON.stringify(notesData));
+  document.getElementById('title').value=''; document.getElementById('species').value=''; document.getElementById('notes').value=''; document.getElementById('location').value='';
+  render(); alert('Field note saved!');
+}
+function deleteNote(id){
+  if(!confirm('Delete this note?')) return;
+  notesData = notesData.filter(n => n.id !== id);
+  localStorage.setItem('fieldNotes', JSON.stringify(notesData)); render();
+}
+function clearAll(){
+  if(!confirm('Clear all notes?')) return;
+  notesData=[]; localStorage.removeItem('fieldNotes'); render();
+}
+function render(){
+  let q = document.getElementById('search').value.toLowerCase();
+  let cat = document.getElementById('filterCat').value;
+  let filtered = notesData.filter(n => {
+    let matchQ = (n.title + ' ' + n.species + ' ' + n.location + ' ' + n.notes).toLowerCase().includes(q);
+    let matchCat = !cat || n.category === cat;
+    return matchQ && matchCat;
+  });
+  let list = document.getElementById('notesList');
+  if(filtered.length === 0){
+    list.innerHTML = '<div class="empty">🌱 No notes yet. Go outside and observe something!<br><small>Your notes will appear here and stay saved even if you close the browser.</small></div>';
+  } else {
+    list.innerHTML = filtered.map(n => `
+      <div class="note">
+        <button class="del" onclick="deleteNote(${n.id})">✕</button>
+        <h3>${n.title}</h3>
+        <div class="species">${n.species ? 'Scientific: ' + n.species : 'No species name'}</div>
+        <p>${n.notes}</p>
+        <div><span class="tag">${n.category}</span><span class="tag">${n.habitat}</span><span class="tag">${n.weather}</span></div>
+        <div class="meta">📍 ${n.location || 'No location'} • 📅 ${n.date || ''}</div>
+      </div>
+    `).join('');
+  }
+  document.getElementById('totalCount').textContent = notesData.length;
+  let today = new Date().toISOString().slice(0,10);
+  document.getElementById('todayCount').textContent = notesData.filter(n => n.date === today).length;
+  let speciesSet = new Set(notesData.map(n => n.species.toLowerCase()).filter(Boolean));
+  document.getElementById('speciesCount').textContent = speciesSet.size;
+}
+
+// Checklist - Editable
+function saveChecklist(){ localStorage.setItem('fieldChecklist', JSON.stringify(checklistData)); renderChecklist(); }
+function renderChecklist(){
+  let box = document.getElementById('checklist');
+  if(checklistData.length === 0){ box.innerHTML = '<p style="color:#9A6A70; font-size:13px;">No items yet. Add one above!</p>'; return; }
+  box.innerHTML = checklistData.map(item => `
+    <div class="check-item">
+      <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleCheck(${item.id})">
+      <span class="${item.done ? 'done' : ''}">${item.text}</span>
+      <button class="edit-btn" onclick="editCheck(${item.id})">✏️</button>
+      <button class="x-btn" onclick="deleteCheck(${item.id})">✕</button>
+    </div>
+  `).join('');
+}
+function addCheck(){
+  let input = document.getElementById('newCheck');
+  let text = input.value.trim();
+  if(!text) return;
+  checklistData.push({id: Date.now(), text, done:false});
+  input.value=''; saveChecklist();
+}
+function toggleCheck(id){
+  let item = checklistData.find(c => c.id === id);
+  if(item) item.done = !item.done;
+  saveChecklist();
+}
+function deleteCheck(id){
+  checklistData = checklistData.filter(c => c.id !== id);
+  saveChecklist();
+}
+function editCheck(id){
+  let item = checklistData.find(c => c.id === id);
+  let newText = prompt('Edit checklist item:', item.text);
+  if(newText && newText.trim()){
+    item.text = newText.trim(); saveChecklist();
+  }
+}
+render(); renderChecklist();
+</script>
+</body>
+</html>
